@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  test:
+  Run Tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,11 +20,7 @@ jobs:
       - name: Run tests with Docker Compose
         uses: cloudposse/github-action-docker-compose-test-run@main
         with:
-          compose-file: ./docker-compose.yml
-          service-name: encurtador
-          test-command: composer test
-          timeout: 300
+          file: docker-compose.yml
+          service: encurtador
+          command: composer test
 
-      - name: Shutdown Docker containers
-        run: |
-          docker-compose down
