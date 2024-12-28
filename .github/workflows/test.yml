@@ -17,9 +17,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Instalação do Docker
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      # Instala o Docker e o Docker Compose
+      - name: Set up Docker and Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker --version
+          docker-compose --version
 
       # Configura o Docker Compose
       - name: Set up Docker Compose
