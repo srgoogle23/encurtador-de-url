@@ -15,11 +15,11 @@ jobs:
     steps:
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run tests with Docker Compose
-        uses: cloudposse/github-action-docker-compose-test-run@main
+        uses: adambirds/docker-compose-action@v1.5.0
         with:
-          file: docker-compose.yml
-          service: encurtador
-          command: composer test
+          compose-file: "./docker-compose.yml"
+          test-container: "encurtador"
+          test-command: "composer test"
