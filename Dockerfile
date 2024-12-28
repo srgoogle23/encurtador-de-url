@@ -1,24 +1,9 @@
-# Default Dockerfile
-#
-# @link     https://www.hyperf.io
-# @document https://hyperf.wiki
-# @contact  group@hyperf.io
-# @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+FROM hyperf/hyperf:8.3-alpine-v3.20-swoole
 
-FROM hyperf/hyperf:8.3-alpine-v3.19-swoole
-LABEL maintainer="Hyperf Developers <group@hyperf.io>" version="1.0" license="MIT" app.name="Hyperf"
-
-##
-# ---------- env settings ----------
-##
-# --build-arg timezone=Asia/Shanghai
-ARG timezone
-
-ENV TIMEZONE=${timezone:-"Asia/Shanghai"} \
+ENV TIMEZONE="America/Sao_Paulo" \
     APP_ENV=prod \
     SCAN_CACHEABLE=(true)
 
-# update
 RUN set -ex \
     # show php version and extensions
     && php -v \
@@ -42,12 +27,10 @@ RUN set -ex \
 
 WORKDIR /opt/www
 
-# Composer Cache
-# COPY ./composer.* /opt/www/
-# RUN composer install --no-dev --no-scripts
-
 COPY . /opt/www
 RUN composer install --no-dev -o && php bin/hyperf.php
+
+COPY .env.example /opt/www/.env
 
 EXPOSE 9501
 
