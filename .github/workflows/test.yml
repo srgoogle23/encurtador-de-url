@@ -21,7 +21,10 @@ jobs:
       - name: Set up Docker and Docker Compose
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker.io
+          sudo apt-get remove -y containerd containerd.io  # Remove qualquer pacote conflitante
+          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+          sudo curl -fsSL https://get.docker.com -o get-docker.sh
+          sudo sh get-docker.sh  # Instala o Docker
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
           docker --version
