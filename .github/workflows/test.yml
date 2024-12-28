@@ -23,4 +23,11 @@ jobs:
           file: docker-compose.yml
           service: encurtador
           command: composer test
+          entrypoint: >
+            /bin/sh -c "
+                ls &&
+                composer install &&
+                php bin/hyperf.php migrate &&
+                php bin/hyperf.php server:watch
+            "
 
