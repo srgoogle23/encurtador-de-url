@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace HyperfTest\Cases;
 
 use Hyperf\Testing\TestCase;
+use Ramsey\Uuid\Uuid;
 
 /**
  * @internal
@@ -20,28 +21,53 @@ use Hyperf\Testing\TestCase;
  */
 class UserTest extends TestCase
 {
-    private string $userId;
+    private array $usersIds = [];
 
-    public function testAddValidUser()
+    protected function setUp(): void
     {
+        parent::setUp();
+
         $user = [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'Password1@',
         ];
         $response = $this->post('/users', $user);
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->usersIds[] = $responseContent['id'];
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ($this->usersIds as $userId) {
+            $this->delete('/users/' . $userId);
+        }
+
+        parent::tearDown();
+    }
+
+    public function testAddValidUser(): void
+    {
+        $user = [
+            'name' => 'John Doe',
+            'email' => $this->generateRandomEmail(),
+            'password' => 'Password1@',
+        ];
+        $response = $this->post('/users', $user);
 
         $this->assertSame(201, $response->getStatusCode());
-        $responseContent = $response->toArray();
-        $this->userId = $responseContent['id'];
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->usersIds[] = $responseContent['id'];
 
         $this->assertArrayHasKey('id', $responseContent);
-        unset($responseContent['id'], $user['password']);
+        $this->assertArrayHasKey('updated_at', $responseContent);
+        $this->assertArrayHasKey('created_at', $responseContent);
+        unset($responseContent['id'], $user['password'], $responseContent['updated_at'], $responseContent['created_at']);
 
         $this->assertSame($user, $responseContent);
     }
 
-    public function testAddDuplicateUser()
+    public function testAddDuplicateUser(): void
     {
         $user = [
             'name' => 'John Doe',
@@ -51,11 +77,11 @@ class UserTest extends TestCase
         $response = $this->post('/users', $user);
 
         $this->assertSame(422, $response->getStatusCode());
-        $responseContent = $response->toArray();
+        $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertSame('The email has already been taken.', $responseContent['message']);
     }
 
-    public function testAddUserInvalidEmail()
+    public function testAddUserInvalidEmail(): void
     {
         $user = [
             'name' => 'John Doe',
@@ -64,84 +90,122 @@ class UserTest extends TestCase
         ];
         $response = $this->post('/users', $user);
 
-        $this->assertSame(400, $response->getStatusCode());
-        $responseContent = $response->toArray();
-        $this->assertSame('Invalid email address.', $responseContent['message']);
+        $this->assertSame(422, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->assertSame('The email must be a valid email address.', $responseContent['message']);
+
+        $user['email'] = str_repeat('a', 256) . '@example.com';
+        $response = $this->post('/users', $user);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->assertSame('The email may not be greater than 255 characters.', $responseContent['message']);
     }
 
-    public function testAddUserInvalidPassword()
+    public function testAddUserInvalidPassword(): void
     {
         $user = [
             'name' => 'John Doe',
-            'email' => 'john@example.com',
+            'email' => $this->generateRandomEmail(),
             'password' => 'password',
         ];
         $response = $this->post('/users', $user);
 
-        $this->assertSame(400, $response->getStatusCode());
-        $responseContent = $response->toArray();
-        $this->assertSame('Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.', $responseContent['message']);
+        $this->assertSame(422, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->assertSame('The password format is invalid.', $responseContent['message']);
     }
 
-    public function testAddUserInvalidName()
+    public function testAddUserInvalidName(): void
     {
         $user = [
             'name' => 'J1',
-            'email' => 'john@example.com',
+            'email' => $this->generateRandomEmail(),
             'password' => 'Password1@',
         ];
         $response = $this->post('/users', $user);
 
-        $this->assertSame(400, $response->getStatusCode());
-        $responseContent = $response->toArray();
-        $this->assertSame('Name must have at least two characters and cannot contain numbers.', $responseContent['message']);
+        $this->assertSame(422, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->assertSame('The name format is invalid.', $responseContent['message']);
+
+        $user['name'] = str_repeat('a', 256);
+        $response = $this->post('/users', $user);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->assertSame('The name may not be greater than 255 characters.', $responseContent['message']);
+
+        $user['name'] = 'J';
+        $response = $this->post('/users', $user);
+
+        $this->assertSame(422, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->assertSame('The name must be at least 2 characters.', $responseContent['message']);
     }
 
-    public function testGetAllUsers()
+    public function testGetAllUsers(): void
     {
         $response = $this->get('/users');
 
         $this->assertSame(200, $response->getStatusCode());
-        $responseContent = $response->toArray();
+        $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertIsArray($responseContent);
         $this->assertNotEmpty($responseContent);
     }
 
-    public function testGetOneValidUser()
+    public function testGetOneValidUser(): void
     {
-        $response = $this->get('/users/' . $this->userId);
+        $response = $this->get('/users/' . $this->usersIds[0]);
 
         $this->assertSame(200, $response->getStatusCode());
-        $responseContent = $response->toArray();
+        $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertIsArray($responseContent);
         $this->assertNotEmpty($responseContent);
     }
 
-    public function testGetOneInvalidUser()
+    public function testGetOneInvalidUser(): void
     {
         $response = $this->get('/users/invalid-id');
 
+        $this->assertSame(422, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->assertSame('Invalid user ID.', $responseContent['message']);
+
+        $response = $this->delete('/users/' . Uuid::uuid4()->toString());
+
         $this->assertSame(404, $response->getStatusCode());
-        $responseContent = $response->toArray();
+        $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertSame('User not found.', $responseContent['message']);
     }
 
-    public function testDeleteValidUser()
+    public function testDeleteValidUser(): void
     {
-        $response = $this->delete('/users/' . $this->userId);
+        $response = $this->delete('/users/' . $this->usersIds[0]);
 
         $this->assertSame(200, $response->getStatusCode());
-        $responseContent = $response->toArray();
+        $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertIsArray($responseContent);
         $this->assertNotEmpty($responseContent);
     }
 
-    public function testDeleteInvalidUser()
+    public function testDeleteInvalidUser(): void
     {
         $response = $this->delete('/users/invalid-id');
 
+        $this->assertSame(422, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->assertSame('Invalid user ID.', $responseContent['message']);
+
+        $response = $this->delete('/users/' . Uuid::uuid4()->toString());
+
         $this->assertSame(404, $response->getStatusCode());
-        $responseContent = $response->toArray();
+        $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertSame('User not found.', $responseContent['message']);
+    }
+
+    private function generateRandomEmail(): string
+    {
+        return 'user' . rand() . '@example.com';
     }
 }
