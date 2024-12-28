@@ -22,5 +22,5 @@ jobs:
         with:
           file: docker-compose.yml
           service: encurtador
-          command: cd app && composer test
+          command: composer test
 
