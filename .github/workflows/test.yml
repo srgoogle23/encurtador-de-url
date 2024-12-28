@@ -23,5 +23,3 @@ jobs:
           file: docker-compose.yml
           service: encurtador
           command: composer test
-          entrypoint: /bin/sh -c "composer install && composer test"
-
