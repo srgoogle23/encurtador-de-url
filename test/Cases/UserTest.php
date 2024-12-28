@@ -50,9 +50,9 @@ class UserTest extends TestCase
         ];
         $response = $this->post('/users', $user);
 
-        $this->assertSame(409, $response->getStatusCode());
+        $this->assertSame(422, $response->getStatusCode());
         $responseContent = $response->toArray();
-        $this->assertSame('User already exists.', $responseContent['message']);
+        $this->assertSame('The email has already been taken.', $responseContent['message']);
     }
 
     public function testAddUserInvalidEmail()

@@ -13,13 +13,14 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Model\User;
+use App\Request\AddUserRequest;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 use Ramsey\Uuid\Uuid;
 
 class UserController
 {
-    public function index(RequestInterface $request, ResponseInterface $response)
+    public function index(ResponseInterface $response)
     {
         return $response->json(User::all());
     }
@@ -29,15 +30,20 @@ class UserController
         return $response->json(User::find($request->input('id')));
     }
 
-    public function store(RequestInterface $request, ResponseInterface $response)
+    public function store(AddUserRequest $request, ResponseInterface $response)
     {
+        // Valida os dados da requisição
+        $validated = $request->validated();
+
+        // Cria um novo usuário
         $user = new User();
         $user->id = Uuid::uuid4()->toString();
-        $user->name = $request->input('name');
-        $user->email = $request->input('email');
-        $user->password = $request->input('password');
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->password = $validated['password'];
         $user->save();
-        return $response->json($user);
+
+        return $response->json($user, 201);
     }
 
     public function delete(RequestInterface $request, ResponseInterface $response)
