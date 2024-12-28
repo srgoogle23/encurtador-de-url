@@ -23,4 +23,5 @@ jobs:
           file: docker-compose.yml
           service: encurtador
           command: composer test
+          workdir: /app
 
