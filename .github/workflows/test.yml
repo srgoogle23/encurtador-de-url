@@ -13,35 +13,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout o código do repositório
+
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Instala o Docker e o Docker Compose
-      - name: Set up Docker and Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get remove -y containerd containerd.io  # Remove qualquer pacote conflitante
-          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-          sudo curl -fsSL https://get.docker.com -o get-docker.sh
-          sudo sh get-docker.sh  # Instala o Docker
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker --version
-          docker-compose --version
+      - name: Run tests with Docker Compose
+        uses: cloudposse/github-action-docker-compose-test-run@main
+        with:
+          compose-file: ./docker-compose.yml
+          service-name: encurtador
+          test-command: composer test
+          timeout: 300
 
-      # Configura o Docker Compose
-      - name: Set up Docker Compose
-        run: |
-          docker-compose -f docker-compose.yml up -d
-          sleep 30  # Espera os serviços ficarem prontos
-
-      # Executa o teste usando Composer
-      - name: Run Composer tests
-        run: |
-          docker-compose exec -T encurtador composer test
-
-      # Finaliza os containers
       - name: Shutdown Docker containers
         run: |
           docker-compose down
