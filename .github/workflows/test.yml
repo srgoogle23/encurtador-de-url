@@ -1,0 +1,38 @@
+name: Run Tests with Composer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout o código do repositório
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Instalação do Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Configura o Docker Compose
+      - name: Set up Docker Compose
+        run: |
+          docker-compose -f docker-compose.yml up -d
+          sleep 30  # Espera os serviços ficarem prontos
+
+      # Executa o teste usando Composer
+      - name: Run Composer tests
+        run: |
+          docker-compose exec -T encurtador composer test
+
+      # Finaliza os containers
+      - name: Shutdown Docker containers
+        run: |
+          docker-compose down
