@@ -32,7 +32,9 @@ class UserTest extends TestCase
         $this->assertSame(201, $response->getStatusCode());
         $responseContent = $response->toArray();
         $this->assertArrayHasKey('id', $responseContent);
-        unset($responseContent['id']);
+        $this->assertArrayHasKey('password', $responseContent);
+        unset($responseContent['id'], $responseContent['password'], $user['password']);
+
         $this->assertSame($user, $responseContent);
     }
 
