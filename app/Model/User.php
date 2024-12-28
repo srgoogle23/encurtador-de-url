@@ -20,12 +20,12 @@ class User extends Model
     /**
      * @var string
      */
-    public $keyType = 'string';
+    public string $keyType = 'string';
 
     /**
      * @var bool
      */
-    public $incrementing = false;
+    public bool $incrementing = false;
 
     /**
      * The table associated with the model.
