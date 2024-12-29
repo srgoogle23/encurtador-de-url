@@ -22,4 +22,10 @@ jobs:
         with:
           file: docker-compose.yml
           service: encurtador
-          command: "ls -a"
+          command: |
+            /bin/sh -c "
+              composer install &&
+              cp .env.example .env &&
+              php bin/hyperf.php migrate &&
+              composer test
+            "
