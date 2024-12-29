@@ -22,4 +22,4 @@ jobs:
         with:
           file: docker-compose.yml
           service: encurtador
-          command: "ls"
+          entrypoint: /bin/sh -c "ls"
