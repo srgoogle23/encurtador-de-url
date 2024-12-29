@@ -18,8 +18,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests with Docker Compose
-        uses: jmalvarezf-lmes/docker-compose-action@v1.4.0
+        uses: cloudposse/github-action-docker-compose-test-run@main
         with:
-          compose-file: "./docker-compose.yml"
-          test-container: "encurtador"
-          test-command: "composer test"
+          file: docker-compose.yml
+          service: encurtador
+          command: "composer test"
