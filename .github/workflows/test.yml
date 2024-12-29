@@ -23,9 +23,7 @@ jobs:
           file: docker-compose.yml
           service: encurtador
           command: |
-            /bin/sh -c "
-              composer install &&
-              cp .env.example .env &&
-              php bin/hyperf.php migrate &&
-              composer test
-            "
+            composer install && 
+            cp .env.example .env &&
+            php bin/hyperf.php migrate &&
+            composer test
