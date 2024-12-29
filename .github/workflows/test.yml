@@ -22,4 +22,9 @@ jobs:
         with:
           file: docker-compose.yml
           service: encurtador
-          entrypoint: /bin/sh -c "ls"
+          entrypoint: >
+            /bin/sh -c "
+                composer install &&
+                cp .env.example .env &&
+                composer test
+            "
