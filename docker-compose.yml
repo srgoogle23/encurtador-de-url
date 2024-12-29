@@ -3,7 +3,13 @@ services:
         container_name: encurtador
         image: hyperf/hyperf:8.3-alpine-v3.20-swoole
         working_dir: /app
-        entrypoint: ["php", "bin/hyperf.php", "server:watch"]
+        entrypoint: >
+            /bin/sh -c "
+                composer install &&
+                cp .env.example .env &&
+                php bin/hyperf.php migrate &&
+                php bin/hyperf.php server:watch
+            "
         volumes:
             - ./:/app
         ports:
