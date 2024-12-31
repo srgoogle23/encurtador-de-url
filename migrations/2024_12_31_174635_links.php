@@ -19,13 +19,13 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->uuid('id')->primary()->unique();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->datetimes();
-            $table->index('email');
+        Schema::create('links', function (Blueprint $table) {
+            $table->uuid('user_id');
+            $table->string('url');
+            $table->string('shortened_url')->unique();
+            $table->timestamps();
+            $table->index('shortened_url');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 
@@ -34,6 +34,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('links');
     }
 };
