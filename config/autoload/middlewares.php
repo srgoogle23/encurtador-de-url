@@ -10,7 +10,6 @@ declare(strict_types=1);
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
 use Hyperf\Validation\Middleware\ValidationMiddleware;
-use Phper666\JWTAuth\Middleware\JWTAuthMiddleware;
 
 /*
  * This file is part of Hyperf.
@@ -23,6 +22,5 @@ use Phper666\JWTAuth\Middleware\JWTAuthMiddleware;
 return [
     'http' => [
         ValidationMiddleware::class,
-        JWTAuthMiddleware::class,
     ],
 ];

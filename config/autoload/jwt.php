@@ -35,7 +35,8 @@ return [
      * 正则写法：["**", "/api/{name:.+}"]  支持模块化不做jwt token的校验，例如：/api/login/login
      */
     'no_check_route' => [
-        ['**', '/**'],
+        ['POST', '/auth'],
+        ['POST', '/users'],
     ],
 
     'login_type' => env('JWT_LOGIN_TYPE', 'mpop'), //  登录方式，sso为单点登录，同一个用户只能登录一个端，mpop为多点登录
