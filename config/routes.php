@@ -9,11 +9,10 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
+use App\Controller\AuthController;
 use App\Controller\LinkController;
 use App\Controller\UserController;
 use Hyperf\HttpServer\Router\Router;
-
-Router::addRoute(['GET', 'POST', 'HEAD'], '/', 'App\Controller\IndexController@index');
 
 Router::addGroup('/users', function () {
     Router::get('', [UserController::class, 'index']);
@@ -26,6 +25,10 @@ Router::addGroup('/links', function () {
     Router::get('/byUser/{user}', [LinkController::class, 'index']);
     Router::get('/{shortenedLink}', [LinkController::class, 'show']);
     Router::post('', [LinkController::class, 'store']);
+});
+
+Router::addGroup('/auth', function () {
+    Router::post('', [AuthController::class, 'auth']);
 });
 
 Router::get('/favicon.ico', function () {

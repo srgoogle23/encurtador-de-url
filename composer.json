@@ -28,6 +28,7 @@
         "hyperf/process": "~3.1.0",
         "hyperf/redis": "~3.1.0",
         "hyperf/validation": "^3.1",
+        "phper666/jwt-auth": "^4.0",
         "ramsey/uuid": "^4.7"
     },
     "require-dev": {

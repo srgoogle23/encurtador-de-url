@@ -44,10 +44,13 @@ class UserController
             return $response->json(['status' => 'error', 'message' => 'Invalid user ID.'])->withStatus(422);
         }
 
-        $user = User::find($id)->makeHidden('password');
+        $user = User::find($id);
         if (! $user) {
             return $response->json(['status' => 'error', 'message' => 'User not found.'])->withStatus(404);
         }
+
+        unset($user->password);
+
         return $response->json($user)->withStatus(200);
     }
 
