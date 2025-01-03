@@ -23,7 +23,8 @@ Router::addGroup('/users', function () {
 });
 
 Router::addGroup('/links', function () {
-    Router::get('/{id}', [LinkController::class, 'show']);
+    Router::get('/byUser/{user}', [LinkController::class, 'index']);
+    Router::get('/{shortenedLink}', [LinkController::class, 'show']);
     Router::post('', [LinkController::class, 'store']);
 });
 

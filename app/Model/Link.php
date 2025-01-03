@@ -25,6 +25,15 @@ use Hyperf\DbConnection\Model\Model;
 class Link extends Model
 {
     /**
+     * The primary key associated with the table.
+     */
+    public string $primaryKey = 'shortened_url';
+
+    public string $keyType = 'string';
+
+    public bool $incrementing = false;
+
+    /**
      * The table associated with the model.
      */
     protected ?string $table = 'links';

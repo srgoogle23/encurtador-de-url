@@ -27,6 +27,28 @@ class LinkController
      */
     protected $validationFactory;
 
+    public function __construct(ValidatorFactoryInterface $validationFactory)
+    {
+        $this->validationFactory = $validationFactory;
+    }
+
+    public function index(string $user, ResponseInterface $response)
+    {
+        $validator = $this->validationFactory->make(
+            ['user' => $user],
+            ['user' => 'required|exists:links,user_id']
+        );
+
+        if ($validator->fails()) {
+            $errorMessage = $validator->errors()->first();
+            return $response->json(['status' => 'error', 'message' => $errorMessage])->withStatus(422);
+        }
+
+        $links = Link::where('user_id', $user)->get();
+
+        return $response->json($links)->withStatus(200);
+    }
+
     /**
      * @Cacheable(key="link", ttl=9000, listener="link-update")
      */
@@ -52,6 +74,7 @@ class LinkController
         $validator = $this->validationFactory->make(
             $request->all(),
             [
+                'user_id' => 'required|exists:users,id',
                 'url' => 'required|url',
             ]
         );
@@ -61,8 +84,11 @@ class LinkController
             return $response->json(['status' => 'error', 'message' => $errorMessage])->withStatus(422);
         }
 
+        $validated = $validator->validated();
+
         $link = Link::create([
-            'url' => $request->input('url'),
+            'user_id' => $validated['user_id'],
+            'url' => $validated['url'],
             'shortened_url' => bin2hex(random_bytes(5)),
         ]);
 
