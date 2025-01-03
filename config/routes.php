@@ -9,6 +9,7 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
+use App\Controller\LinkController;
 use App\Controller\UserController;
 use Hyperf\HttpServer\Router\Router;
 
@@ -19,6 +20,12 @@ Router::addGroup('/users', function () {
     Router::get('/{id}', [UserController::class, 'show']);
     Router::post('', [UserController::class, 'store']);
     Router::delete('/{id}', [UserController::class, 'delete']);
+});
+
+Router::addGroup('/links', function () {
+    Router::get('/byUser/{user}', [LinkController::class, 'index']);
+    Router::get('/{shortenedLink}', [LinkController::class, 'show']);
+    Router::post('', [LinkController::class, 'store']);
 });
 
 Router::get('/favicon.ico', function () {
