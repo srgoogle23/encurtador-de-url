@@ -72,10 +72,8 @@ class UserController
         $user->id = Uuid::uuid4()->toString();
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        $user->password = $validated['password'];
+        $user->password = password_hash($validated['password'], PASSWORD_DEFAULT);
         $user->save();
-
-        unset($user->password);
 
         return $response->json($user)->withStatus(201);
     }
