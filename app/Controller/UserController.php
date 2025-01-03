@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Model\Link;
 use App\Model\User;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
@@ -34,7 +35,7 @@ class UserController
 
     public function index(ResponseInterface $response)
     {
-        return $response->json(User::all())->withStatus(200);
+        return $response->json(User::all()->makeHidden('password'))->withStatus(200);
     }
 
     public function show(string $id, ResponseInterface $response)
@@ -43,7 +44,7 @@ class UserController
             return $response->json(['status' => 'error', 'message' => 'Invalid user ID.'])->withStatus(422);
         }
 
-        $user = User::find($id);
+        $user = User::find($id)->makeHidden('password');
         if (! $user) {
             return $response->json(['status' => 'error', 'message' => 'User not found.'])->withStatus(404);
         }
@@ -72,7 +73,7 @@ class UserController
         $user->id = Uuid::uuid4()->toString();
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        $user->password = $validated['password'];
+        $user->password = password_hash($validated['password'], PASSWORD_DEFAULT);
         $user->save();
 
         unset($user->password);
@@ -90,6 +91,8 @@ class UserController
         if (! $user) {
             return $response->json(['status' => 'error', 'message' => 'User not found.'])->withStatus(404);
         }
+
+        Link::where('user_id', $id)->delete();
         $user->delete();
         return $response->json(['status' => 'success', 'message' => 'User deleted.'])->withStatus(200);
     }
