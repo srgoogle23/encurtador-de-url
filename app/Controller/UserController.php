@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Model\Link;
 use App\Model\User;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
@@ -88,6 +89,8 @@ class UserController
         if (! $user) {
             return $response->json(['status' => 'error', 'message' => 'User not found.'])->withStatus(404);
         }
+
+        Link::where('user_id', $id)->delete();
         $user->delete();
         return $response->json(['status' => 'success', 'message' => 'User deleted.'])->withStatus(200);
     }
