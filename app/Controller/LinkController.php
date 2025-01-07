@@ -18,6 +18,7 @@ use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 use Hyperf\Validation\Contract\ValidatorFactoryInterface;
+use Ramsey\Uuid\Uuid;
 
 class LinkController
 {
@@ -34,6 +35,10 @@ class LinkController
 
     public function index(string $user, ResponseInterface $response)
     {
+        if (! Uuid::isValid($user)) {
+            return $response->json(['status' => 'error', 'message' => 'Invalid user ID.'])->withStatus(422);
+        }
+
         $validator = $this->validationFactory->make(
             ['user' => $user],
             ['user' => 'required|exists:links,user_id']
@@ -71,6 +76,10 @@ class LinkController
 
     public function store(RequestInterface $request, ResponseInterface $response)
     {
+        if (! Uuid::isValid($request->input('user_id'))) {
+            return $response->json(['status' => 'error', 'message' => 'Invalid user ID.'])->withStatus(422);
+        }
+
         $validator = $this->validationFactory->make(
             $request->all(),
             [
