@@ -23,24 +23,12 @@ class UserTest extends TestCase
 {
     private array $usersIds = [];
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $user = [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => 'Password1@',
-        ];
-        $response = $this->post('/users', $user);
-        $responseContent = json_decode($response->getBody()->getContents(), true);
-        $this->usersIds[] = $responseContent['id'];
-    }
-
     protected function tearDown(): void
     {
+        $token = $this->getToken();
+
         foreach ($this->usersIds as $userId) {
-            $this->delete('/users/' . $userId);
+            $this->delete('/users/' . $userId, [], ['Authorization' => $token]);
         }
 
         parent::tearDown();
@@ -50,11 +38,10 @@ class UserTest extends TestCase
     {
         $user = [
             'name' => 'John Doe',
-            'email' => $this->generateRandomEmail(),
+            'email' => $this->generateRandomEmail(__FUNCTION__),
             'password' => 'Password1@',
         ];
         $response = $this->post('/users', $user);
-
         $this->assertSame(201, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->usersIds[] = $responseContent['id'];
@@ -69,13 +56,18 @@ class UserTest extends TestCase
 
     public function testAddDuplicateUser(): void
     {
+        $randomEmail = $this->generateRandomEmail(__FUNCTION__);
         $user = [
             'name' => 'John Doe',
-            'email' => 'john@example.com',
+            'email' => $randomEmail,
             'password' => 'Password1@',
         ];
         $response = $this->post('/users', $user);
+        $this->assertSame(201, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->usersIds[] = $responseContent['id'];
 
+        $response = $this->post('/users', $user);
         $this->assertSame(422, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertSame('The email has already been taken.', $responseContent['message']);
@@ -106,7 +98,7 @@ class UserTest extends TestCase
     {
         $user = [
             'name' => 'John Doe',
-            'email' => $this->generateRandomEmail(),
+            'email' => $this->generateRandomEmail(__FUNCTION__),
             'password' => 'password',
         ];
         $response = $this->post('/users', $user);
@@ -120,7 +112,7 @@ class UserTest extends TestCase
     {
         $user = [
             'name' => 'J1',
-            'email' => $this->generateRandomEmail(),
+            'email' => $this->generateRandomEmail(__FUNCTION__),
             'password' => 'Password1@',
         ];
         $response = $this->post('/users', $user);
@@ -146,7 +138,7 @@ class UserTest extends TestCase
 
     public function testGetAllUsers(): void
     {
-        $response = $this->get('/users');
+        $response = $this->get('/users', [], ['Authorization' => $this->getToken()]);
 
         $this->assertSame(200, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
@@ -156,7 +148,17 @@ class UserTest extends TestCase
 
     public function testGetOneValidUser(): void
     {
-        $response = $this->get('/users/' . $this->usersIds[0]);
+        $user = [
+            'name' => 'John Doe',
+            'email' => $this->generateRandomEmail(__FUNCTION__),
+            'password' => 'Password1@',
+        ];
+        $response = $this->post('/users', $user);
+        $this->assertSame(201, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->usersIds[] = $responseContent['id'];
+
+        $response = $this->get('/users/' . $responseContent['id'], [], ['Authorization' => $this->getToken()]);
 
         $this->assertSame(200, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
@@ -166,13 +168,13 @@ class UserTest extends TestCase
 
     public function testGetOneInvalidUser(): void
     {
-        $response = $this->get('/users/invalid-id');
+        $response = $this->get('/users/invalid-id', [], ['Authorization' => $this->getToken()]);
 
         $this->assertSame(422, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertSame('Invalid user ID.', $responseContent['message']);
 
-        $response = $this->delete('/users/' . Uuid::uuid4()->toString());
+        $response = $this->delete('/users/' . Uuid::uuid4()->toString(), [], ['Authorization' => $this->getToken()]);
 
         $this->assertSame(404, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
@@ -181,7 +183,17 @@ class UserTest extends TestCase
 
     public function testDeleteValidUser(): void
     {
-        $response = $this->delete('/users/' . $this->usersIds[0]);
+        $user = [
+            'name' => 'John Doe',
+            'email' => $this->generateRandomEmail(__FUNCTION__),
+            'password' => 'Password1@',
+        ];
+        $response = $this->post('/users', $user);
+        $this->assertSame(201, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->usersIds[] = $responseContent['id'];
+
+        $response = $this->delete('/users/' . $responseContent['id'], [], ['Authorization' => $this->getToken()]);
 
         $this->assertSame(200, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
@@ -191,21 +203,43 @@ class UserTest extends TestCase
 
     public function testDeleteInvalidUser(): void
     {
-        $response = $this->delete('/users/invalid-id');
+        $response = $this->delete('/users/invalid-id', [], ['Authorization' => $this->getToken()]);
 
         $this->assertSame(422, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertSame('Invalid user ID.', $responseContent['message']);
 
-        $response = $this->delete('/users/' . Uuid::uuid4()->toString());
+        $response = $this->delete('/users/' . Uuid::uuid4()->toString(), [], ['Authorization' => $this->getToken()]);
 
         $this->assertSame(404, $response->getStatusCode());
         $responseContent = json_decode($response->getBody()->getContents(), true);
         $this->assertSame('User not found.', $responseContent['message']);
     }
 
-    private function generateRandomEmail(): string
+    private function getToken(): string
     {
-        return 'user' . rand() . '@example.com';
+        $user = [
+            'name' => 'John Doe',
+            'email' => $this->generateRandomEmail(__FUNCTION__),
+            'password' => 'Password1@',
+        ];
+        $response = $this->post('/users', $user);
+        $this->assertSame(201, $response->getStatusCode());
+        $responseContent = json_decode($response->getBody()->getContents(), true);
+        $this->usersIds[] = $responseContent['id'];
+
+        $authData = $user;
+        unset($authData['name']);
+        $responseAuth = $this->post('/auth', $authData);
+        $this->assertSame(200, $responseAuth->getStatusCode());
+        $responseContentAuth = json_decode($responseAuth->getBody()->getContents(), true);
+
+        return 'Bearer ' . $responseContentAuth['data']['token'];
+    }
+
+    private function generateRandomEmail(string $functionName = 'example'): string
+    {
+        $rand = rand();
+        return "user{$rand}@{$functionName}.com";
     }
 }
