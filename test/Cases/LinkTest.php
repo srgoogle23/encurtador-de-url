@@ -29,6 +29,12 @@ class LinkTest extends TestCase
 
     protected function tearDown(): void
     {
+        // Isso remove os usuários que não foram removidos durante o teste
+        $this->deleteCreatedUsers();
+
+        // Isso remove os usuários de token criados acima
+        $this->deleteCreatedUsers();
+
         parent::tearDown();
     }
 
@@ -139,6 +145,21 @@ class LinkTest extends TestCase
         $this->usersIds[] = $responseContent['id'];
 
         return $response;
+    }
+
+    private function deleteUser(string $userId): void
+    {
+        $response = $this->delete('/users/' . $userId, [], ['Authorization' => $this->getToken()]);
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertNotEmpty($this->getResponseContent($response));
+    }
+
+    private function deleteCreatedUsers(): void
+    {
+        foreach ($this->usersIds as $key => $userId) {
+            $this->deleteUser($userId);
+            unset($this->usersIds[$key]);
+        }
     }
 
     private function getUserData(string $functionName, string $name = 'John Doe', ?string $email = null, string $password = 'Password1@'): array
