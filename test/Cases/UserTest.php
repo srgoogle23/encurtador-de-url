@@ -23,11 +23,16 @@ class UserTest extends TestCase
 {
     private array $usersIds = [];
 
+    private string $token = '';
+
     protected function tearDown(): void
     {
-        foreach ($this->usersIds as $userId) {
-            $this->deleteUser($userId);
-        }
+        // Isso remove os usuários que não foram removidos durante o teste
+        $this->deleteCreatedUsers();
+
+        // Isso remove os usuários de token criados acima
+        $this->deleteCreatedUsers();
+
         parent::tearDown();
     }
 
@@ -119,6 +124,9 @@ class UserTest extends TestCase
 
         $userId = $this->getResponseContent($response)['id'];
         $response = $this->deleteUser($userId);
+
+        $key = array_search($userId, $this->usersIds);
+        unset($this->usersIds[$key]);
     }
 
     public function testDeleteInvalidUser(): void
@@ -130,28 +138,41 @@ class UserTest extends TestCase
         $this->assertErrorMessage($response, 404, 'User not found.');
     }
 
+    private function deleteCreatedUsers(): void
+    {
+        foreach ($this->usersIds as $key => $userId) {
+            $this->deleteUser($userId);
+            unset($this->usersIds[$key]);
+        }
+    }
+
     private function getToken(): string
     {
+        if ($this->token !== '') {
+            return $this->token;
+        }
+
         $user = $this->getUserData(__FUNCTION__);
         $this->createUser($user);
 
         $authData = ['email' => $user['email'], 'password' => $user['password']];
         $responseAuth = $this->post('/auth', $authData);
         $this->assertSame(200, $responseAuth->getStatusCode());
+        $this->token = 'Bearer ' . $this->getResponseContent($responseAuth)['data']['token'];
 
-        return 'Bearer ' . $this->getResponseContent($responseAuth)['data']['token'];
+        return $this->token;
     }
 
     private function createUser(array $user, int $expectedStatusCode = 201, ?string $expectedMessage = null)
     {
         $response = $this->post('/users', $user);
         $this->assertSame($expectedStatusCode, $response->getStatusCode());
+        $responseContent = $this->getResponseContent($response);
 
         if ($expectedMessage) {
-            $responseContent = $this->getResponseContent($response);
             $this->assertSame($expectedMessage, $responseContent['message']);
         } else {
-            $this->usersIds[] = $this->getResponseContent($response)['id'];
+            $this->usersIds[] = $responseContent['id'];
         }
 
         return $response;
