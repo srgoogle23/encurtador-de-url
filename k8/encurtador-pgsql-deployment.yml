@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: encurtador-pgsql
+  labels:
+    app: encurtador-pgsql
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: encurtador-pgsql
+  template:
+    metadata:
+      labels:
+        app: encurtador-pgsql
+    spec:
+      containers:
+      - name: encurtador-pgsql
+        image: postgres:latest
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "encurtador"
+        - name: POSTGRES_PASSWORD
+          value: "encurtador"
+        - name: POSTGRES_DB
+          value: "encurtador"
+        volumeMounts:
+        - name: pgsql-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: pgsql-data
+        persistentVolumeClaim:
+          claimName: pgsql-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgsql-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: encurtador-pgsql-service
+spec:
+  selector:
+    app: encurtador-pgsql
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+  type: ClusterIP

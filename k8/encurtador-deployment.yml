@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: encurtador
+  labels:
+    app: encurtador
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: encurtador
+  template:
+    metadata:
+      labels:
+        app: encurtador
+    spec:
+      containers:
+      - name: encurtador
+        image: encurtador:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9501
+      volumes:
+      - name: app-volume
+        persistentVolumeClaim:
+          claimName: encurtador-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: encurtador-service
+spec:
+  selector:
+    app: encurtador
+  ports:
+  - protocol: TCP
+    port: 9501
+    targetPort: 9501
+  type: LoadBalancer
