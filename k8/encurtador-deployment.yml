@@ -20,10 +20,6 @@ spec:
         imagePullPolicy: Never
         ports:
         - containerPort: 9501
-      volumes:
-      - name: app-volume
-        persistentVolumeClaim:
-          claimName: encurtador-pvc
 ---
 apiVersion: v1
 kind: Service
