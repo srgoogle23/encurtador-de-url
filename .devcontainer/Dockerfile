@@ -28,7 +28,7 @@ RUN set -ex \
 WORKDIR /opt/www
 
 COPY . /opt/www
-RUN composer install --no-dev -o && php bin/hyperf.php
+RUN composer install && php bin/hyperf.php
 
 COPY .env.example.k8 /opt/www/.env
 
